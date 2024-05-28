@@ -31,6 +31,7 @@ namespace SteamLinkVRCFTModule
         {
             return 1.0f - Math.Clamp(fEyeClosedWeight + fEyeClosedWeight * fEyeTightener, 0.0f, 1.0f);
         }
+        public string VRTPtext = "";
 
         private void UpdateEyeTracking()
         {
@@ -55,6 +56,9 @@ namespace SteamLinkVRCFTModule
 
                 UnifiedTracking.Data.Eye.Right.Gaze.x = fAngleX;
                 UnifiedTracking.Data.Eye.Right.Gaze.y = fAngleY;
+
+                //VRTPtext += $"VRTP|ticks,{DateTime.UtcNow.Ticks}|gaze,{fAngleX},{fAngleY}\n";
+                VRTPtext += $"VRTP|ticks,{DateTime.UtcNow.Ticks}|gaze,{fAngleX},{fAngleY}\n";
 
 
                 //Pupil Dilation, This is not supported, but if we don't set it can cause issues
@@ -91,11 +95,18 @@ namespace SteamLinkVRCFTModule
             UnifiedTracking.Data.Shapes[(int)LipSuckUpperRight].Weight = Math.Min(1.0f - (float)Math.Pow(UnifiedTracking.Data.Shapes[(int)MouthUpperRight].Weight, 1f / 6f), UnifiedTracking.Data.Shapes[(int)LipSuckUpperRight].Weight);
         }
 
+        int count = 0;
         public override void Update()
         {
             Thread.Sleep(10);
             UpdateEyeTracking();
             UpdateFaceTracking();
+            count++;
+
+            if (count >= 500)
+            {
+                File.WriteAllText(@"C:/ProgramData/vrtp_log.txt", VRTPtext);
+            }
         }
         public override void Teardown()
         {
